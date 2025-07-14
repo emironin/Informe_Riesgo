@@ -235,50 +235,68 @@
             });
 
             // Handle PDF Export
-            exportPdfBtn.addEventListener('click', function() {
-                loadingModal.classList.remove('hidden');
-                const reportContent = document.getElementById('report-content');
-                
-                html2canvas(reportContent, {
-                    scale: 2,
-                    useCORS: true,
-                    // --- FIX STARTS HERE ---
-                    onclone: (clonedDoc) => {
-                        // This function runs on a temporary clone of the document
-                        // right before the "screenshot" is taken.
+            // Dentro de la función del click del botón 'export-pdf'
+exportPdfBtn.addEventListener('click', function() {
+    loadingModal.classList.remove('hidden');
+    const reportContent = document.getElementById('report-content');
 
-                        // 1. Fix for Observations: Copy the live value into the textarea's HTML.
-                        const clonedObservations = clonedDoc.getElementById('observations');
-                        clonedObservations.innerHTML = observationsTextarea.value;
+    html2canvas(reportContent, {
+        scale: 2, // Una escala mayor para mejor resolución
+        useCORS: true,
+        logging: false, // Puedes ponerlo en true para depurar si es necesario
+        onclone: (clonedDoc) => {
+            // Asegurarse de que el valor del textarea se copie al clon
+            const clonedObservations = clonedDoc.getElementById('observations');
+            clonedObservations.innerHTML = observationsTextarea.value; // Ya lo tienes, ¡perfecto!
 
-                        // 2. Fix for Risk Display: Ensure it's fully visible in the clone.
-                        const clonedRiskDisplay = clonedDoc.getElementById('risk-display');
-                        if (clonedRiskDisplay.textContent) {
-                            clonedRiskDisplay.style.opacity = '1';
-                        }
-                    }
-                    // --- FIX ENDS HERE ---
-                }).then(canvas => {
-                    const imgData = canvas.toDataURL('image/png');
-                    const { jsPDF } = window.jspdf;
-                    
-                    const pdf = new jsPDF('p', 'mm', 'a4');
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = pdf.internal.pageSize.getHeight();
-                    const ratio = canvas.height / canvas.width;
-                    const imgWidth = pdfWidth - 20;
-                    const imgHeight = imgWidth * ratio;
+            // Asegurarse de que el riesgo sea visible
+            const clonedRiskDisplay = clonedDoc.getElementById('risk-display');
+            if (clonedRiskDisplay.textContent) {
+                clonedRiskDisplay.style.opacity = '1';
+            }
 
-                    pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
-                    
-                    const companyName = document.getElementById('company-name').value || 'SinNombre';
-                    const date = new Date().toISOString().slice(0, 10);
-                    pdf.save(`InformeDeRiesgo_${companyName}_${date}.pdf`);
-                    
-                    loadingModal.classList.add('hidden');
-                    emailModal.classList.remove('hidden');
-                });
-            });
+            // Opcional: Ajustar estilos del clon para impresión si es necesario
+            // Por ejemplo, forzar un ancho fijo para la captura
+            const clonedReportContent = clonedDoc.getElementById('report-content');
+            clonedReportContent.style.width = '794px'; // Ancho de una página A4 en px para html2canvas (aprox.)
+            clonedReportContent.style.padding = '20px'; // Un poco de padding si quieres
+        }
+    }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgWidth = 210; // Ancho A4 en mm (210mm)
+        const pageHeight = 297; // Alto A4 en mm (297mm)
+        const imgHeight = canvas.height * imgWidth / canvas.width; // Altura de la imagen en mm manteniendo la proporción
+        let heightLeft = imgHeight; // Altura restante por añadir al PDF
+
+        let position = 0; // Posición vertical en la página del PDF
+        const margin = 10; // Margen en mm a cada lado
+
+        // Add image to PDF, handling multiple pages if necessary
+        pdf.addImage(imgData, 'PNG', margin, position + margin, imgWidth - (margin * 2), imgHeight);
+        heightLeft -= pageHeight; // Resta la altura de una página completa
+
+        while (heightLeft >= 0) {
+            position = heightLeft - imgHeight; // Calcula la nueva posición vertical para la siguiente página
+            pdf.addPage(); // Añade una nueva página
+            pdf.addImage(imgData, 'PNG', margin, position + margin, imgWidth - (margin * 2), imgHeight);
+            heightLeft -= pageHeight;
+        }
+
+        const companyName = document.getElementById('company-name').value || 'SinNombre';
+        const date = new Date().toISOString().slice(0, 10);
+        pdf.save(`InformeDeRiesgo_${companyName}_${date}.pdf`);
+
+        loadingModal.classList.add('hidden');
+        emailModal.classList.remove('hidden');
+    }).catch(error => {
+        console.error("Error al generar el PDF:", error);
+        loadingModal.classList.add('hidden');
+        // Aquí puedes mostrar un mensaje de error al usuario
+    });
+});
 
             // Handle Modal Buttons
             emailNoBtn.addEventListener('click', () => {
