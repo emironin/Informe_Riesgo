@@ -17,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- PWA Manifest (using relative path for GitHub Pages) -->
+    <!-- PWA Manifest -->
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#1d4ed8">
     <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
@@ -38,7 +38,7 @@
         </header>
 
         <main id="report-form" class="bg-white p-6 rounded-lg shadow-lg">
-            <!-- Company Info, Photo, Risk, Observations... -->
+            <!-- Company Info -->
             <div class="grid grid-cols-3 gap-4 mb-6 items-center">
                 <div class="col-span-1">
                     <label for="logo-upload" class="cursor-pointer">
@@ -55,13 +55,15 @@
             </div>
             <div class="mb-6"><p class="text-sm text-gray-600"><strong>Fecha y Hora:</strong> <span id="datetime"></span></p></div>
             <hr class="mb-6">
+            <!-- Photo and Risk -->
             <div class="grid md:grid-cols-2 gap-6">
                 <div>
                     <h2 class="font-bold text-lg mb-2">Fotografía de Evidencia</h2>
                     <label for="photo-upload" class="cursor-pointer block w-full h-auto aspect-square bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-300 transition-colors">
-                        <img id="photo-preview" src="https://placehold.co/600x600/e2e8f0/cbd5e0?text=Cargar+Foto+(600x600)" alt="Vista previa de la foto" class="w-full h-full object-cover rounded-lg" crossorigin="anonymous">
+                        <img id="photo-preview" src="https://placehold.co/600x600/e2e8f0/cbd5e0?text=Cargar+Foto" alt="Vista previa de la foto" class="w-full h-full object-cover rounded-lg" crossorigin="anonymous">
                     </label>
-                    <input id="photo-upload" type="file" accept="image/*" capture="environment">
+                    <!-- FIX: Removed 'capture' attribute to allow choosing between camera and gallery -->
+                    <input id="photo-upload" type="file" accept="image/*">
                 </div>
                 <div>
                     <h2 class="font-bold text-lg mb-2">Nivel de Riesgo</h2>
@@ -85,7 +87,7 @@
 
     <!-- Modals -->
     <div id="email-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden"><div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full text-center"><h3 class="text-lg font-medium text-gray-900 mb-2">PDF Generado</h3><p class="text-sm text-gray-600 mb-4">El informe se ha descargado. ¿Deseas enviarlo por correo electrónico?</p><div class="flex justify-center gap-4"><button id="email-no" class="px-6 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">No</button><button id="email-yes" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Sí, Enviar</button></div></div></div>
-    <div id="loading-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden"><div class="bg-white rounded-lg shadow-xl p-8 text-center"><p class="text-lg font-medium text-gray-900">Generando PDF...</p></div></div>
+    <div id="loading-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden"><div class="bg-white rounded-lg shadow-xl p-8 text-center"><p id="loading-text" class="text-lg font-medium text-gray-900">Generando PDF...</p></div></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -99,6 +101,7 @@
             const exportPdfBtn = document.getElementById('export-pdf');
             const emailModal = document.getElementById('email-modal');
             const loadingModal = document.getElementById('loading-modal');
+            const loadingText = document.getElementById('loading-text');
             const emailYesBtn = document.getElementById('email-yes');
             const emailNoBtn = document.getElementById('email-no');
             
@@ -106,10 +109,15 @@
             document.getElementById('datetime').textContent = new Date().toLocaleString('es-AR');
 
             // --- EVENT LISTENERS ---
+            // FIX: Use FileReader to get a base64 Data URL, which prevents canvas tainting.
             const handleImageUpload = (event, previewElement) => {
                 const file = event.target.files[0];
                 if (file) {
-                    previewElement.src = URL.createObjectURL(file);
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        previewElement.src = e.target.result; // e.target.result is the base64 Data URL
+                    };
+                    reader.readAsDataURL(file);
                 }
             };
             logoUpload.addEventListener('change', (e) => handleImageUpload(e, logoPreview));
@@ -125,68 +133,71 @@
             });
 
             // --- PDF EXPORT (ROBUST VERSION) ---
-            
-            // KEY FUNCTION FOR PDF RELIABILITY: Converts an image element to a Data URL
-            const imageToDataUrl = (imgElement) => {
-                return new Promise((resolve) => {
-                    const img = new Image();
-                    img.crossOrigin = 'Anonymous'; // Important for external images
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        canvas.width = img.naturalWidth;
-                        canvas.height = img.naturalHeight;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0);
-                        resolve(canvas.toDataURL('image/jpeg', 0.9));
-                    };
-                    img.onerror = () => resolve(imgElement.src); // Fallback to original src if conversion fails
-                    img.src = imgElement.src;
-                });
-            };
-
             exportPdfBtn.addEventListener('click', async function() {
                 loadingModal.classList.remove('hidden');
+                loadingText.textContent = "Generando PDF...";
 
-                // 1. Convert images to Data URLs asynchronously
-                const logoDataUrl = await imageToDataUrl(logoPreview);
-                const photoDataUrl = await imageToDataUrl(photoPreview);
+                // This function now just returns the src, which should be a Data URL
+                const getImageData = (imgElement) => {
+                    // If the src is a placeholder, we still need to convert it.
+                    if (imgElement.src.startsWith('https://')) {
+                        loadingText.textContent = "Procesando imágenes...";
+                        return new Promise((resolve, reject) => {
+                            const img = new Image();
+                            img.crossOrigin = 'Anonymous';
+                            img.onload = () => {
+                                const canvas = document.createElement('canvas');
+                                canvas.width = img.naturalWidth;
+                                canvas.height = img.naturalHeight;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0);
+                                resolve(canvas.toDataURL('image/jpeg', 0.9));
+                            };
+                            img.onerror = reject;
+                            img.src = imgElement.src;
+                        });
+                    }
+                    // If it's already a Data URL from a user upload, just return it.
+                    return Promise.resolve(imgElement.src);
+                };
 
-                // 2. Get other form data
-                const companyName = document.getElementById('company-name').value;
-                const observations = document.getElementById('observations').value.replace(/\n/g, '<br>');
-                const selectedRisk = document.querySelector('input[name="risk"]:checked');
-                
-                // 3. Build the clean HTML for the PDF
-                let riskHTML = '';
-                if (selectedRisk) {
-                    riskHTML = `<div class="mt-4 text-center"><p class="font-bold uppercase px-4 py-2 rounded-md inline-block ${selectedRisk.dataset.colorClass}">${selectedRisk.value}</p></div>`;
-                }
-                
-                const exportHTML = `
-                    <div class="grid grid-cols-3 gap-4 mb-6 items-center">
-                        <div class="col-span-1"><img src="${logoDataUrl}" class="w-full h-auto object-cover rounded-md"></div>
-                        <div class="col-span-2 space-y-1 text-sm">
-                            <p><strong>Empresa:</strong> ${companyName || 'N/A'}</p>
-                            <p><strong>CUIT:</strong> ${document.getElementById('cuit').value || 'N/A'}</p>
-                            <p><strong>Teléfono:</strong> ${document.getElementById('phone').value || 'N/A'}</p>
-                            <p><strong>Email:</strong> ${document.getElementById('email').value || 'N/A'}</p>
-                        </div>
-                    </div>
-                    <div class="mb-6"><p class="text-sm text-gray-600"><strong>Fecha y Hora:</strong> ${document.getElementById('datetime').textContent}</p></div>
-                    <hr class="mb-6">
-                    <h2 class="font-bold text-lg mb-2 text-center">Evidencia y Riesgo</h2>
-                    <div class="flex justify-center"><img src="${photoDataUrl}" alt="Evidencia" class="max-w-md w-full rounded-lg"></div>
-                    ${riskHTML}
-                    <div class="mt-6">
-                        <h2 class="font-bold text-lg mb-2">Observaciones</h2>
-                        <div class="p-2 border rounded-md bg-gray-50 text-sm" style="min-height: 100px;">${observations || 'Sin observaciones.'}</div>
-                    </div>`;
-
-                const pdfExportContent = document.getElementById('pdf-export-content');
-                pdfExportContent.innerHTML = exportHTML;
-
-                // 4. Generate the PDF
                 try {
+                    const logoDataUrl = await getImageData(logoPreview);
+                    const photoDataUrl = await getImageData(photoPreview);
+
+                    const companyName = document.getElementById('company-name').value;
+                    const observations = document.getElementById('observations').value.replace(/\n/g, '<br>');
+                    const selectedRisk = document.querySelector('input[name="risk"]:checked');
+                    
+                    let riskHTML = '';
+                    if (selectedRisk) {
+                        riskHTML = `<div class="mt-4 text-center"><p class="font-bold uppercase px-4 py-2 rounded-md inline-block ${selectedRisk.dataset.colorClass}">${selectedRisk.value}</p></div>`;
+                    }
+                    
+                    const exportHTML = `
+                        <div class="grid grid-cols-3 gap-4 mb-6 items-center">
+                            <div class="col-span-1"><img src="${logoDataUrl}" class="w-full h-auto object-cover rounded-md"></div>
+                            <div class="col-span-2 space-y-1 text-sm">
+                                <p><strong>Empresa:</strong> ${companyName || 'N/A'}</p>
+                                <p><strong>CUIT:</strong> ${document.getElementById('cuit').value || 'N/A'}</p>
+                                <p><strong>Teléfono:</strong> ${document.getElementById('phone').value || 'N/A'}</p>
+                                <p><strong>Email:</strong> ${document.getElementById('email').value || 'N/A'}</p>
+                            </div>
+                        </div>
+                        <div class="mb-6"><p class="text-sm text-gray-600"><strong>Fecha y Hora:</strong> ${document.getElementById('datetime').textContent}</p></div>
+                        <hr class="mb-6">
+                        <h2 class="font-bold text-lg mb-2 text-center">Evidencia y Riesgo</h2>
+                        <div class="flex justify-center"><img src="${photoDataUrl}" alt="Evidencia" class="max-w-md w-full rounded-lg"></div>
+                        ${riskHTML}
+                        <div class="mt-6">
+                            <h2 class="font-bold text-lg mb-2">Observaciones</h2>
+                            <div class="p-2 border rounded-md bg-gray-50 text-sm" style="min-height: 100px;">${observations || 'Sin observaciones.'}</div>
+                        </div>`;
+
+                    const pdfExportContent = document.getElementById('pdf-export-content');
+                    pdfExportContent.innerHTML = exportHTML;
+
+                    loadingText.textContent = "Creando archivo PDF...";
                     const canvas = await html2canvas(pdfExportContent, { scale: 2, useCORS: true });
                     const imgData = canvas.toDataURL('image/png');
                     const { jsPDF } = window.jspdf;
@@ -196,14 +207,19 @@
                     const imgHeight = canvas.height * imgWidth / canvas.width;
                     pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
                     pdf.save(`InformeDeRiesgo_${companyName || 'SinNombre'}_${new Date().toISOString().slice(0, 10)}.pdf`);
+                    
+                    emailModal.classList.remove('hidden');
+
                 } catch (error) {
                     console.error("Error al generar el PDF:", error);
-                    alert("Hubo un error al generar el PDF. Revise la consola para más detalles.");
-                } finally {
-                    loadingModal.classList.add('hidden');
-                    emailModal.classList.remove('hidden');
-                    pdfExportContent.innerHTML = '';
+                    loadingText.textContent = "Error al generar el PDF. Revise la consola.";
+                    // Hide the loading modal after a delay to show the error
+                    setTimeout(() => loadingModal.classList.add('hidden'), 3000);
+                    return; // Stop execution
                 }
+
+                loadingModal.classList.add('hidden');
+                document.getElementById('pdf-export-content').innerHTML = '';
             });
 
             // Modal Buttons
