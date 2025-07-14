@@ -5,60 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Informe de Riesgo</title>
     
-    <!-- Tailwind CSS for styling -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- jsPDF and html2canvas for PDF generation -->
+    <!-- PDF Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-    <!-- Google Fonts: Inter -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- PWA Manifest and Theme -->
-    <link rel="manifest" href="manifest.json">
+    <!-- PWA Manifest (using relative path) -->
+    <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#1d4ed8">
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
 
     <style>
-        /* Custom styles */
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Hide file input default UI */
-        input[type="file"] {
-            display: none;
-        }
-        /* Custom styles for the report area to ensure clean PDF export */
-        #report-content {
-            box-shadow: none;
-        }
-        /* Styling for the risk level display */
-        #risk-display {
-            transition: all 0.3s ease-in-out;
-        }
+        body { font-family: 'Inter', sans-serif; }
+        input[type="file"] { display: none; }
+        #risk-display { transition: all 0.3s ease-in-out; }
     </style>
-    <!-- ... tus otras etiquetas meta y title ... -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1d4ed8">
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-    <!-- ... tus etiquetas link de CSS ... -->
 </head>
 <body class="bg-gray-100">
 
-    <div class="container mx-auto max-w-2xl p-4 sm:p-6 lg:p-8">
-        <!-- Header -->
+    <!-- VISIBLE CONTENT FOR THE USER -->
+    <div id="app-container" class="container mx-auto max-w-2xl p-4 sm:p-6 lg:p-8">
         <header class="text-center mb-6">
             <h1 class="text-3xl font-bold text-gray-800">Informe de Riesgo</h1>
             <p class="text-sm text-gray-500">Creada por JAE SISTEMAS</p>
         </header>
 
-        <!-- Main Report Area -->
-        <main id="report-content" class="bg-white p-6 rounded-lg shadow-lg">
-            
-            <!-- Company Info Section -->
+        <main id="report-form" class="bg-white p-6 rounded-lg shadow-lg">
+            <!-- Company Info, Photo, Risk, Observations... all the form fields go here -->
             <div class="grid grid-cols-3 gap-4 mb-6 items-center">
                 <div class="col-span-1">
                     <label for="logo-upload" class="cursor-pointer">
@@ -73,16 +53,11 @@
                     <input id="email" type="email" placeholder="E-mail" class="w-full p-2 border rounded-md">
                 </div>
             </div>
-
-            <!-- Date and Time -->
             <div class="mb-6">
                 <p class="text-sm text-gray-600"><strong>Fecha y Hora:</strong> <span id="datetime"></span></p>
             </div>
             <hr class="mb-6">
-
-            <!-- Photo and Risk Assessment Section -->
             <div class="grid md:grid-cols-2 gap-6">
-                <!-- Photo Upload -->
                 <div>
                     <h2 class="font-bold text-lg mb-2">Fotografía de Evidencia</h2>
                     <label for="photo-upload" class="cursor-pointer block w-full h-auto aspect-square bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-300 transition-colors">
@@ -91,70 +66,38 @@
                     <input id="photo-upload" type="file" accept="image/*" capture="environment">
                     <canvas id="photo-canvas" width="600" height="600" class="hidden"></canvas>
                 </div>
-
-                <!-- Risk Checklist -->
                 <div>
                     <h2 class="font-bold text-lg mb-2">Nivel de Riesgo</h2>
                     <div class="space-y-3">
-                        <label class="flex items-center p-3 bg-gray-50 rounded-md border has-[:checked]:bg-green-100 has-[:checked]:border-green-400">
-                            <input type="radio" name="risk" value="SIN RIESGO" class="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500">
-                            <span class="ml-3 text-gray-700">Sin Riesgo</span>
-                        </label>
-                        <label class="flex items-center p-3 bg-gray-50 rounded-md border has-[:checked]:bg-yellow-100 has-[:checked]:border-yellow-400">
-                            <input type="radio" name="risk" value="BAJO RIESGO" class="h-4 w-4 text-yellow-600 border-gray-300 focus:ring-yellow-500">
-                            <span class="ml-3 text-gray-700">Bajo Riesgo</span>
-                        </label>
-                        <label class="flex items-center p-3 bg-gray-50 rounded-md border has-[:checked]:bg-orange-100 has-[:checked]:border-orange-400">
-                            <input type="radio" name="risk" value="RIESGO MEDIO" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500">
-                            <span class="ml-3 text-gray-700">Riesgo Medio</span>
-                        </label>
-                        <label class="flex items-center p-3 bg-gray-50 rounded-md border has-[:checked]:bg-red-100 has-[:checked]:border-red-400">
-                            <input type="radio" name="risk" value="ALTO RIESGO" class="h-4 w-4 text-red-600 border-gray-300 focus:ring-red-500">
-                            <span class="ml-3 text-gray-700">Alto Riesgo</span>
-                        </label>
+                        <label class="flex items-center p-3 bg-gray-50 rounded-md border has-[:checked]:bg-green-100 has-[:checked]:border-green-400"><input type="radio" name="risk" value="SIN RIESGO" data-color-class="bg-green-200 text-green-800" class="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500"><span class="ml-3 text-gray-700">Sin Riesgo</span></label>
+                        <label class="flex items-center p-3 bg-gray-50 rounded-md border has-[:checked]:bg-yellow-100 has-[:checked]:border-yellow-400"><input type="radio" name="risk" value="BAJO RIESGO" data-color-class="bg-yellow-200 text-yellow-800" class="h-4 w-4 text-yellow-600 border-gray-300 focus:ring-yellow-500"><span class="ml-3 text-gray-700">Bajo Riesgo</span></label>
+                        <label class="flex items-center p-3 bg-gray-50 rounded-md border has-[:checked]:bg-orange-100 has-[:checked]:border-orange-400"><input type="radio" name="risk" value="RIESGO MEDIO" data-color-class="bg-orange-200 text-orange-800" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500"><span class="ml-3 text-gray-700">Riesgo Medio</span></label>
+                        <label class="flex items-center p-3 bg-gray-50 rounded-md border has-[:checked]:bg-red-100 has-[:checked]:border-red-400"><input type="radio" name="risk" value="ALTO RIESGO" data-color-class="bg-red-200 text-red-800" class="h-4 w-4 text-red-600 border-gray-300 focus:ring-red-500"><span class="ml-3 text-gray-700">Alto Riesgo</span></label>
                     </div>
                 </div>
             </div>
-
-            <!-- Risk Level Display -->
             <div id="risk-display-container" class="mt-4 text-center h-10 flex items-center justify-center">
                  <p id="risk-display" class="font-bold uppercase px-4 py-2 rounded-md" style="opacity: 0;"></p>
             </div>
-
-            <!-- Observations Section -->
             <div class="mt-6">
                 <h2 class="font-bold text-lg mb-2">Observaciones</h2>
                 <textarea id="observations" rows="5" class="w-full p-2 border rounded-md" placeholder="Escriba aquí sus observaciones..."></textarea>
             </div>
         </main>
         
-        <!-- Action Button -->
         <footer class="mt-6 text-center">
-            <button id="export-pdf" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-all shadow-md w-full sm:w-auto">
-                Generar y Exportar PDF
-            </button>
+            <button id="export-pdf" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-all shadow-md w-full sm:w-auto">Generar y Exportar PDF</button>
         </footer>
     </div>
 
-    <!-- Modal for Email Prompt -->
-    <div id="email-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full text-center">
-            <h3 class="text-lg font-medium text-gray-900 mb-2">PDF Generado</h3>
-            <p class="text-sm text-gray-600 mb-4">El informe se ha descargado. ¿Deseas enviarlo por correo electrónico?</p>
-            <div class="flex justify-center gap-4">
-                <button id="email-no" class="px-6 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">No</button>
-                <button id="email-yes" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Sí, Enviar</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal for Loading State -->
-    <div id="loading-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-8 text-center">
-            <p class="text-lg font-medium text-gray-900">Generando PDF...</p>
-        </div>
+    <!-- HIDDEN CONTENT FOR PDF EXPORT - THIS IS THE FIX -->
+    <div id="pdf-export-content" class="hidden bg-white p-6" style="width: 800px;">
+        <!-- This will be populated by JavaScript before printing -->
     </div>
 
+    <!-- Modals (Email Prompt, Loading) -->
+    <div id="email-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden"><div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full text-center"><h3 class="text-lg font-medium text-gray-900 mb-2">PDF Generado</h3><p class="text-sm text-gray-600 mb-4">El informe se ha descargado. ¿Deseas enviarlo por correo electrónico?</p><div class="flex justify-center gap-4"><button id="email-no" class="px-6 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">No</button><button id="email-yes" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Sí, Enviar</button></div></div></div>
+    <div id="loading-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden"><div class="bg-white rounded-lg shadow-xl p-8 text-center"><p class="text-lg font-medium text-gray-900">Generando PDF...</p></div></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -171,125 +114,121 @@
             const loadingModal = document.getElementById('loading-modal');
             const emailYesBtn = document.getElementById('email-yes');
             const emailNoBtn = document.getElementById('email-no');
-            const observationsTextarea = document.getElementById('observations');
-
+            
             // --- INITIALIZATION ---
-            // Set current date and time
             const now = new Date();
             document.getElementById('datetime').textContent = now.toLocaleString('es-AR');
 
             // --- EVENT LISTENERS ---
-
-            // Handle Logo Upload
-            logoUpload.addEventListener('change', function(event) {
-                const file = event.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        logoPreview.src = e.target.result;
-                    }
-                    reader.readAsDataURL(file);
-                }
+            logoUpload.addEventListener('change', e => {
+                const file = e.target.files[0];
+                if (file) logoPreview.src = URL.createObjectURL(file);
             });
 
-            // Handle Photo Upload and Processing
-            photoUpload.addEventListener('change', function(event) {
-                const file = event.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const img = new Image();
-                        img.onload = function() {
-                            const ctx = photoCanvas.getContext('2d');
-                            ctx.fillStyle = 'white';
-                            ctx.fillRect(0, 0, 600, 600);
-                            const scale = Math.min(600 / img.width, 600 / img.height);
-                            const x = (600 / 2) - (img.width / 2) * scale;
-                            const y = (600 / 2) - (img.height / 2) * scale;
-                            ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-                            photoPreview.src = photoCanvas.toDataURL('image/jpeg', 0.9);
-                        }
-                        img.src = e.target.result;
-                    }
-                    reader.readAsDataURL(file);
-                }
+            photoUpload.addEventListener('change', e => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const ctx = photoCanvas.getContext('2d');
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(0, 0, 600, 600);
+                        const scale = Math.min(600 / img.width, 600 / img.height);
+                        const x = (600 / 2) - (img.width / 2) * scale;
+                        const y = (600 / 2) - (img.height / 2) * scale;
+                        ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+                        photoPreview.src = photoCanvas.toDataURL('image/jpeg', 0.9);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
             });
 
-            // Handle Risk Level Change
             riskRadios.forEach(radio => {
                 radio.addEventListener('change', function() {
-                    const value = this.value;
-                    riskDisplay.textContent = value;
+                    riskDisplay.textContent = this.value;
                     riskDisplay.style.opacity = '1';
-                    riskDisplay.classList.remove('bg-green-200', 'text-green-800', 'bg-yellow-200', 'text-yellow-800', 'bg-orange-200', 'text-orange-800', 'bg-red-200', 'text-red-800');
-                    switch (value) {
-                        case 'SIN RIESGO':
-                            riskDisplay.classList.add('bg-green-200', 'text-green-800');
-                            break;
-                        case 'BAJO RIESGO':
-                            riskDisplay.classList.add('bg-yellow-200', 'text-yellow-800');
-                            break;
-                        case 'RIESGO MEDIO':
-                            riskDisplay.classList.add('bg-orange-200', 'text-orange-800');
-                            break;
-                        case 'ALTO RIESGO':
-                            riskDisplay.classList.add('bg-red-200', 'text-red-800');
-                            break;
-                    }
+                    riskDisplay.className = 'font-bold uppercase px-4 py-2 rounded-md'; // Reset classes
+                    riskDisplay.classList.add(...this.dataset.colorClass.split(' '));
                 });
             });
 
-            // Handle PDF Export
+            // --- PDF EXPORT (REBUILT FOR RELIABILITY) ---
             exportPdfBtn.addEventListener('click', function() {
                 loadingModal.classList.remove('hidden');
-                const reportContent = document.getElementById('report-content');
+
+                // 1. Get all the data from the form
+                const companyName = document.getElementById('company-name').value;
+                const cuit = document.getElementById('cuit').value;
+                const phone = document.getElementById('phone').value;
+                const email = document.getElementById('email').value;
+                const logoSrc = document.getElementById('logo-preview').src;
+                const photoSrc = document.getElementById('photo-preview').src;
+                const datetime = document.getElementById('datetime').textContent;
+                const observations = document.getElementById('observations').value.replace(/\n/g, '<br>'); // Preserve line breaks
+                const selectedRisk = document.querySelector('input[name="risk"]:checked');
                 
-                html2canvas(reportContent, {
-                    scale: 2,
-                    useCORS: true,
-                    // --- FIX STARTS HERE ---
-                    onclone: (clonedDoc) => {
-                        // This function runs on a temporary clone of the document
-                        // right before the "screenshot" is taken.
+                // 2. Build the clean HTML for the PDF
+                let riskHTML = '';
+                if (selectedRisk) {
+                    const riskValue = selectedRisk.value;
+                    const riskColorClasses = selectedRisk.dataset.colorClass;
+                    riskHTML = `<div class="mt-4 text-center">
+                                    <p class="font-bold uppercase px-4 py-2 rounded-md inline-block ${riskColorClasses}">${riskValue}</p>
+                                </div>`;
+                }
 
-                        // 1. Fix for Observations: Copy the live value into the textarea's HTML.
-                        const clonedObservations = clonedDoc.getElementById('observations');
-                        clonedObservations.innerHTML = observationsTextarea.value;
+                const exportHTML = `
+                    <header class="text-center mb-6">
+                        <h1 class="text-3xl font-bold text-gray-800">Informe de Riesgo</h1>
+                        <p class="text-sm text-gray-500">Creada por JAE SISTEMAS</p>
+                    </header>
+                    <div class="grid grid-cols-3 gap-4 mb-6 items-center">
+                        <div class="col-span-1"><img src="${logoSrc}" class="w-full h-auto object-cover rounded-md"></div>
+                        <div class="col-span-2 space-y-1 text-sm">
+                            <p><strong>Empresa:</strong> ${companyName || 'N/A'}</p>
+                            <p><strong>CUIT:</strong> ${cuit || 'N/A'}</p>
+                            <p><strong>Teléfono:</strong> ${phone || 'N/A'}</p>
+                            <p><strong>Email:</strong> ${email || 'N/A'}</p>
+                        </div>
+                    </div>
+                    <div class="mb-6"><p class="text-sm text-gray-600"><strong>Fecha y Hora:</strong> ${datetime}</p></div>
+                    <hr class="mb-6">
+                    <h2 class="font-bold text-lg mb-2 text-center">Evidencia y Riesgo</h2>
+                    <img src="${photoSrc}" alt="Evidencia" class="w-full max-w-md mx-auto rounded-lg">
+                    ${riskHTML}
+                    <div class="mt-6">
+                        <h2 class="font-bold text-lg mb-2">Observaciones</h2>
+                        <div class="p-2 border rounded-md bg-gray-50 text-sm" style="min-height: 100px;">${observations || 'Sin observaciones.'}</div>
+                    </div>
+                `;
 
-                        // 2. Fix for Risk Display: Ensure it's fully visible in the clone.
-                        const clonedRiskDisplay = clonedDoc.getElementById('risk-display');
-                        if (clonedRiskDisplay.textContent) {
-                            clonedRiskDisplay.style.opacity = '1';
-                        }
-                    }
-                    // --- FIX ENDS HERE ---
-                }).then(canvas => {
+                const pdfExportContent = document.getElementById('pdf-export-content');
+                pdfExportContent.innerHTML = exportHTML;
+
+                // 3. Generate the PDF from the clean HTML
+                html2canvas(pdfExportContent, { scale: 2, useCORS: true }).then(canvas => {
                     const imgData = canvas.toDataURL('image/png');
                     const { jsPDF } = window.jspdf;
-                    
                     const pdf = new jsPDF('p', 'mm', 'a4');
                     const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = pdf.internal.pageSize.getHeight();
-                    const ratio = canvas.height / canvas.width;
-                    const imgWidth = pdfWidth - 20;
-                    const imgHeight = imgWidth * ratio;
-
-                    pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+                    const imgWidth = pdfWidth;
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+                    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
                     
-                    const companyName = document.getElementById('company-name').value || 'SinNombre';
-                    const date = new Date().toISOString().slice(0, 10);
-                    pdf.save(`InformeDeRiesgo_${companyName}_${date}.pdf`);
+                    const pdfFileName = `InformeDeRiesgo_${companyName || 'SinNombre'}_${new Date().toISOString().slice(0, 10)}.pdf`;
+                    pdf.save(pdfFileName);
                     
                     loadingModal.classList.add('hidden');
                     emailModal.classList.remove('hidden');
+                    pdfExportContent.innerHTML = ''; // Clean up
                 });
             });
 
-            // Handle Modal Buttons
-            emailNoBtn.addEventListener('click', () => {
-                emailModal.classList.add('hidden');
-            });
-
+            // Modal Buttons
+            emailNoBtn.addEventListener('click', () => emailModal.classList.add('hidden'));
             emailYesBtn.addEventListener('click', () => {
                 const email = document.getElementById('email').value || '';
                 const subject = `Informe de Riesgo - ${document.getElementById('company-name').value || 'Reporte'}`;
@@ -299,30 +238,15 @@
             });
         });
 
-        // Register the Service Worker for PWA functionality
+        // PWA Service Worker Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register('./sw.js') // Use relative path
                     .then(registration => {
-                        console.log('Service Worker registrado con éxito:', registration);
+                        console.log('✅ Service Worker registrado con éxito. Scope:', registration.scope);
                     })
                     .catch(error => {
-                        console.log('Error al registrar el Service Worker:', error);
-                    });
-            });
-        }
-    </script>
-    <!-- ... tu script principal ... -->
-    <script>
-        // Registrar el Service Worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('Service Worker registrado con éxito:', registration);
-                    })
-                    .catch(error => {
-                        console.log('Error al registrar el Service Worker:', error);
+                        console.log('❌ Error al registrar el Service Worker:', error);
                     });
             });
         }
