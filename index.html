@@ -1,93 +1,93 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Informe de Riesgo</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- PDF Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<!DOCTYPE html> 
+<html lang="es"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Informe de Riesgo</title> 
+     
+    <!-- Tailwind CSS --> 
+    <script src="https://cdn.tailwindcss.com"></script> 
+     
+    <!-- PDF Libraries --> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script> 
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#1d4ed8">
-    <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
+    <!-- Google Fonts --> 
+    <link rel="preconnect" href="https://fonts.googleapis.com"> 
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"> 
+     
+    <!-- PWA Manifest --> 
+    <link rel="manifest" href="./manifest.json"> 
+    <meta name="theme-color" content="#1d4ed8"> 
+    <link rel="apple-touch-icon" href="./icons/icon-192x192.png"> 
 
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        input[type="file"] { display: none; }
-        #risk-display { transition: all 0.3s ease-in-out; }
-    </style>
-</head>
-<body class="bg-gray-100">
+    <style> 
+        body { font-family: 'Inter', sans-serif; } 
+        input[type="file"] { display: none; } 
+        #risk-display { transition: all 0.3s ease-in-out; } 
+    </style> 
+</head> 
+<body class="bg-gray-100"> 
 
-    <!-- VISIBLE CONTENT FOR THE USER -->
-    <div id="app-container" class="container mx-auto max-w-2xl p-4 sm:p-6 lg:p-8">
-        <header class="text-center mb-6">
-            <h1 class="text-3xl font-bold text-gray-800">Informe de Riesgo</h1>
-            <p class="text-sm text-gray-500">Creada por JAE SISTEMAS</p>
-        </header>
+    <!-- VISIBLE CONTENT FOR THE USER --> 
+    <div id="app-container" class="container mx-auto max-w-2xl p-4 sm:p-6 lg:p-8"> 
+        <header class="text-center mb-6"> 
+            <h1 class="text-3xl font-bold text-gray-800">Informe de Riesgo</h1> 
+            <p class="text-sm text-gray-500">Creada por JAE SISTEMAS</p> 
+        </header> 
 
-        <main id="report-form" class="bg-white p-6 rounded-lg shadow-lg">
-            <!-- Company Info -->
-            <div class="grid grid-cols-3 gap-4 mb-6 items-center">
-                <div class="col-span-1">
-                    <label for="logo-upload" class="cursor-pointer">
-                        <img id="logo-preview" src="https://placehold.co/150x150/e2e8f0/cbd5e0?text=Logo" alt="Logo de la empresa" class="w-full h-auto object-cover rounded-md bg-gray-200" crossorigin="anonymous">
-                    </label>
-                    <input id="logo-upload" type="file" accept="image/*">
-                </div>
-                <div class="col-span-2 space-y-3">
-                    <input id="company-name" type="text" placeholder="Nombre de la Empresa" class="w-full p-2 border rounded-md">
-                    <input id="cuit" type="text" placeholder="CUIT" class="w-full p-2 border rounded-md">
-                    <input id="phone" type="tel" placeholder="Teléfono" class="w-full p-2 border rounded-md">
-                    <input id="email" type="email" placeholder="E-mail" class="w-full p-2 border rounded-md">
-                </div>
-            </div>
-            <div class="mb-6"><p class="text-sm text-gray-600"><strong>Fecha y Hora:</strong> <span id="datetime"></span></p></div>
-            <hr class="mb-6">
-            <!-- Photo and Risk -->
-            <div class="grid md:grid-cols-2 gap-6">
-                <div>
-                    <h2 class="font-bold text-lg mb-2">Fotografía de Evidencia</h2>
-                    <label for="photo-upload" class="cursor-pointer block w-full h-auto aspect-square bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-300 transition-colors">
-                        <img id="photo-preview" src="https://placehold.co/600x600/e2e8f0/cbd5e0?text=Cargar+Foto" alt="Vista previa de la foto" class="w-full h-full object-cover rounded-lg" crossorigin="anonymous">
-                    </label>
-                    <!-- FIX: Removed 'capture' attribute to allow choosing between camera and gallery -->
-                    <input id="photo-upload" type="file" accept="image/*" capture="environment">
-                </div>
-                <div>
-                    <h2 class="font-bold text-lg mb-2">Nivel de Riesgo</h2>
-                    <div class="space-y-3">
-                        <label class="flex items-center p-3 bg-gray-50 rounded-md border has-[:checked]:bg-green-100 has-[:checked]:border-green-400"><input type="radio" name="risk" value="SIN RIESGO" data-color-class="bg-green-200 text-green-800" class="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500"><span class="ml-3 text-gray-700">Sin Riesgo</span></label>
-                        <label class="flex items-center p-3 bg-gray-50 rounded-md border has-[:checked]:bg-yellow-100 has-[:checked]:border-yellow-400"><input type="radio" name="risk" value="BAJO RIESGO" data-color-class="bg-yellow-200 text-yellow-800" class="h-4 w-4 text-yellow-600 border-gray-300 focus:ring-yellow-500"><span class="ml-3 text-gray-700">Bajo Riesgo</span></label>
-                        <label class="flex items-center p-3 bg-gray-50 rounded-md border has-[:checked]:bg-orange-100 has-[:checked]:border-orange-400"><input type="radio" name="risk" value="RIESGO MEDIO" data-color-class="bg-orange-200 text-orange-800" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500"><span class="ml-3 text-gray-700">Riesgo Medio</span></label>
-                        <label class="flex items-center p-3 bg-gray-50 rounded-md border has-[:checked]:bg-red-100 has-[:checked]:border-red-400"><input type="radio" name="risk" value="ALTO RIESGO" data-color-class="bg-red-200 text-red-800" class="h-4 w-4 text-red-600 border-gray-300 focus:ring-red-500"><span class="ml-3 text-gray-700">Alto Riesgo</span></label>
-                    </div>
-                </div>
-            </div>
-            <div id="risk-display-container" class="mt-4 text-center h-10 flex items-center justify-center"><p id="risk-display" class="font-bold uppercase px-4 py-2 rounded-md" style="opacity: 0;"></p></div>
-            <div class="mt-6"><h2 class="font-bold text-lg mb-2">Observaciones</h2><textarea id="observations" rows="5" class="w-full p-2 border rounded-md" placeholder="Escriba aquí sus observaciones..."></textarea></div>
-        </main>
-        
-        <footer class="mt-6 text-center"><button id="export-pdf" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-all shadow-md w-full sm:w-auto">Generar y Exportar PDF</button></footer>
-    </div>
+        <main id="report-form" class="bg-white p-6 rounded-lg shadow-lg"> 
+            <!-- Company Info --> 
+            <div class="grid grid-cols-3 gap-4 mb-6 items-center"> 
+                <div class="col-span-1"> 
+                    <label for="logo-upload" class="cursor-pointer"> 
+                        <img id="logo-preview" src="https://placehold.co/150x150/e2e8f0/cbd5e0?text=Logo" alt="Logo de la empresa" class="w-full h-auto object-cover rounded-md bg-gray-200" crossorigin="anonymous"> 
+                    </label> 
+                    <input id="logo-upload" type="file" accept="image/*"> 
+                </div> 
+                <div class="col-span-2 space-y-3"> 
+                    <input id="company-name" type="text" placeholder="Nombre de la Empresa" class="w-full p-2 border rounded-md"> 
+                    <input id="cuit" type="text" placeholder="CUIT" class="w-full p-2 border rounded-md"> 
+                    <input id="phone" type="tel" placeholder="Teléfono" class="w-full p-2 border rounded-md"> 
+                    <input id="email" type="email" placeholder="E-mail" class="w-full p-2 border rounded-md"> 
+                </div> 
+            </div> 
+            <div class="mb-6"><p class="text-sm text-gray-600"><strong>Fecha y Hora:</strong> <span id="datetime"></span></p></div> 
+            <hr class="mb-6"> 
+            <!-- Photo and Risk --> 
+            <div class="grid md:grid-cols-2 gap-6"> 
+                <div> 
+                    <h2 class="font-bold text-lg mb-2">Fotografía de Evidencia</h2> 
+                    <label for="photo-upload" class="cursor-pointer block w-full h-auto aspect-square bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-300 transition-colors"> 
+                        <img id="photo-preview" src="https://placehold.co/600x600/e2e8f0/cbd5e0?text=Cargar+Foto" alt="Vista previa de la foto" class="w-full h-full object-cover rounded-lg" crossorigin="anonymous"> 
+                    </label> 
+                    <!-- FIX: Removed 'capture' attribute to allow choosing between camera and gallery --> 
+                    <input id="photo-upload" type="file" accept="image/*" capture="environment"> 
+                </div> 
+                <div> 
+                    <h2 class="font-bold text-lg mb-2">Nivel de Riesgo</h2> 
+                    <div class="space-y-3"> 
+                        <label class="flex items-center p-3 bg-gray-50 rounded-md border has-[:checked]:bg-green-100 has-[:checked]:border-green-400"><input type="radio" name="risk" value="SIN RIESGO" data-color-class="bg-green-200 text-green-800" class="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500"><span class="ml-3 text-gray-700">Sin Riesgo</span></label> 
+                        <label class="flex items-center p-3 bg-gray-50 rounded-md border has-[:checked]:bg-yellow-100 has-[:checked]:border-yellow-400"><input type="radio" name="risk" value="BAJO RIESGO" data-color-class="bg-yellow-200 text-yellow-800" class="h-4 w-4 text-yellow-600 border-gray-300 focus:ring-yellow-500"><span class="ml-3 text-gray-700">Bajo Riesgo</span></label> 
+                        <label class="flex items-center p-3 bg-gray-50 rounded-md border has-[:checked]:bg-orange-100 has-[:checked]:border-orange-400"><input type="radio" name="risk" value="RIESGO MEDIO" data-color-class="bg-orange-200 text-orange-800" class="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500"><span class="ml-3 text-gray-700">Riesgo Medio</span></label> 
+                        <label class="flex items-center p-3 bg-gray-50 rounded-md border has-[:checked]:bg-red-100 has-[:checked]:border-red-400"><input type="radio" name="risk" value="ALTO RIESGO" data-color-class="bg-red-200 text-red-800" class="h-4 w-4 text-red-600 border-gray-300 focus:ring-red-500"><span class="ml-3 text-gray-700">Alto Riesgo</span></label> 
+                    </div> 
+                </div> 
+            </div> 
+            <div id="risk-display-container" class="mt-4 text-center h-10 flex items-center justify-center"><p id="risk-display" class="font-bold uppercase px-4 py-2 rounded-md" style="opacity: 0;"></p></div> 
+            <div class="mt-6"><h2 class="font-bold text-lg mb-2">Observaciones</h2><textarea id="observations" rows="5" class="w-full p-2 border rounded-md" placeholder="Escriba aquí sus observaciones..."></textarea></div> 
+        </main> 
+         
+        <footer class="mt-6 text-center"><button id="export-pdf" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-all shadow-md w-full sm:w-auto">Generar y Exportar PDF</button></footer> 
+    </div> 
 
-    <!-- HIDDEN CONTENT FOR PDF EXPORT -->
-    <div id="pdf-export-content" class="bg-white p-6 fixed -left-[9999px]" style="width: 800px; top: 0;"></div>
+    <!-- HIDDEN CONTENT FOR PDF EXPORT --> 
+    <div id="pdf-export-content" class="bg-white p-6 fixed -left-[9999px]" style="width: 800px; top: 0;"></div> 
 
-    <!-- Modals -->
-    <div id="email-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden"><div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full text-center"><h3 class="text-lg font-medium text-gray-900 mb-2">PDF Generado</h3><p class="text-sm text-gray-600 mb-4">El informe se ha descargado. ¿Deseas enviarlo por correo electrónico?</p><div class="flex justify-center gap-4"><button id="email-no" class="px-6 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">No</button><button id="email-yes" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Sí, Enviar</button></div></div></div>
-    <div id="loading-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden"><div class="bg-white rounded-lg shadow-xl p-8 text-center"><p id="loading-text" class="text-lg font-medium text-gray-900">Generando PDF...</p></div></div>
+    <!-- Modals --> 
+    <div id="email-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden"><div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full text-center"><h3 class="text-lg font-medium text-gray-900 mb-2">PDF Generado</h3><p class="text-sm text-gray-600 mb-4">El informe se ha descargado. ¿Deseas enviarlo por correo electrónico?</p><div class="flex justify-center gap-4"><button id="email-no" class="px-6 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">No</button><button id="email-yes" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Sí, Enviar</button></div></div></div> 
+    <div id="loading-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden"><div class="bg-white rounded-lg shadow-xl p-8 text-center"><p id="loading-text" class="text-lg font-medium text-gray-900">Generando PDF...</p></div></div> 
 
     <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -262,6 +262,5 @@
         });
     }
 </script>
-    
-</body>
-</html>
+</body> 
+</html> 
