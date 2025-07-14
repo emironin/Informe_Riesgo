@@ -63,7 +63,7 @@
                         <img id="photo-preview" src="https://placehold.co/600x600/e2e8f0/cbd5e0?text=Cargar+Foto" alt="Vista previa de la foto" class="w-full h-full object-cover rounded-lg" crossorigin="anonymous"> 
                     </label> 
                     <!-- FIX: Removed 'capture' attribute to allow choosing between camera and gallery --> 
-                    <input id="photo-upload" type="file" accept="image/*"> 
+                    <input id="photo-upload" type="file" accept="image/*" capture="environment"> 
                 </div> 
                 <div> 
                     <h2 class="font-bold text-lg mb-2">Nivel de Riesgo</h2> 
@@ -213,11 +213,12 @@
                 // Pequeño retraso para asegurar que el DOM esté renderizado
                 await new Promise(resolve => setTimeout(resolve, 50)); 
 
-                const canvas = await html2canvas(pdfExportContent, { 
-                    scale: 2, 
-                    useCORS: true,
-                    allowTaint: false,
-                    foreignObjectRendering: true
+                const canvas = await html2canvas(pdfExportContent, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: false,
+                foreignObjectRendering: true,
+                logging: true // <-- ¡Asegúrate de que esta línea esté aquí!
                 });
                 
                 const imgData = canvas.toDataURL('image/png');
