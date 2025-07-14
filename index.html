@@ -213,6 +213,15 @@
                 // Pequeño retraso para asegurar que el DOM esté renderizado
                 await new Promise(resolve => setTimeout(resolve, 50)); 
 
+                const pdfExportContent = document.getElementById('pdf-export-content');
+                pdfExportContent.innerHTML = exportHTML;
+
+                console.log("Contenido HTML a exportar para PDF:", pdfExportContent.innerHTML); // <-- ¡Añade esta línea!
+
+                loadingText.textContent = "Creando archivo PDF...";
+                // ... luego viene el await new Promise(resolve => setTimeout(resolve, 50));
+                // ... y luego el const canvas = await html2canvas(...);
+
                 const canvas = await html2canvas(pdfExportContent, {
                 scale: 2,
                 useCORS: true,
