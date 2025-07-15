@@ -287,12 +287,6 @@
                             clonedRiskDisplay.style.opacity = '1';
                         }
 
-                        // Ocultar la sección de los radio buttons del "Nivel de Riesgo" en el clon para el PDF
-                        const clonedRiskChecklistOptions = clonedDoc.getElementById('risk-checklist-options');
-                        if (clonedRiskChecklistOptions) {
-                            clonedRiskChecklistOptions.style.display = 'none';
-                        }
-                        
                         // Asegurarse de que la imagen de la foto tiene el tamaño correcto en el DOM clonado para html2canvas
                         const clonedPhotoPreview = clonedDoc.getElementById('photo-preview');
                         const clonedPhotoContainer = clonedPhotoPreview.closest('div'); 
