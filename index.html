@@ -149,8 +149,7 @@
             <p class="text-lg font-medium text-gray-900">Generando PDF...</p>
         </div>
     </div>
-
-
+    
     <script>
             document.addEventListener('DOMContentLoaded', function () {
             // --- ELEMENTS ---
@@ -167,15 +166,31 @@
             const emailYesBtn = document.getElementById('email-yes');
             const emailNoBtn = document.getElementById('email-no');
             const observationsTextarea = document.getElementById('observations');
-            const reportContent = document.getElementById('report-content'); // Mover esto fuera para que sea accesible
-        
+            const reportContent = document.getElementById('report-content'); 
+
             // --- INITIALIZATION ---
-            // Set current date and time
             const now = new Date();
             document.getElementById('datetime').textContent = now.toLocaleString('es-AR');
-        
+
+            // --- CONFIGURACIÓN DE TAMAÑO DE FOTO PARA PDF ---
+            // Dimensiones deseadas para la imagen en el PDF (en mm)
+            const PHOTO_WIDTH_MM = 130;
+            const PHOTO_HEIGHT_MM = 180;
+
+            // Convertir mm a píxeles para el canvas (considerando 96 DPI por defecto para HTML)
+            const DPI = 96; 
+            const MM_PER_INCH = 25.4;
+            const PX_PER_MM = DPI / MM_PER_INCH;
+
+            const PHOTO_WIDTH_PX = PHOTO_WIDTH_MM * PX_PER_MM; 
+            const PHOTO_HEIGHT_PX = PHOTO_HEIGHT_MM * PX_PER_MM; 
+
+            // Establecer las dimensiones del canvas
+            photoCanvas.width = PHOTO_WIDTH_PX;
+            photoCanvas.height = PHOTO_HEIGHT_PX;
+
             // --- EVENT LISTENERS ---
-        
+
             // Handle Logo Upload
             logoUpload.addEventListener('change', function(event) {
                 const file = event.target.files[0];
@@ -187,7 +202,7 @@
                     reader.readAsDataURL(file);
                 }
             });
-        
+
             // Handle Photo Upload and Processing
             photoUpload.addEventListener('change', function(event) {
                 const file = event.target.files[0];
@@ -197,20 +212,28 @@
                         const img = new Image();
                         img.onload = function() {
                             const ctx = photoCanvas.getContext('2d');
-                            ctx.fillStyle = 'white';
-                            ctx.fillRect(0, 0, 600, 600);
-                            const scale = Math.min(600 / img.width, 600 / img.height);
-                            const x = (600 / 2) - (img.width / 2) * scale;
-                            const y = (600 / 2) - (img.height / 2) * scale;
-                            ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-                            photoPreview.src = photoCanvas.toDataURL('image/jpeg', 0.9);
+                            ctx.clearRect(0, 0, photoCanvas.width, photoCanvas.height); 
+                            ctx.fillStyle = 'white'; 
+                            ctx.fillRect(0, 0, photoCanvas.width, photoCanvas.height);
+
+                            // Usar 'cover' para que la imagen llene el espacio, recortando si es necesario.
+                            // Si quieres que la imagen completa sea visible (con barras blancas si las proporciones no coinciden), usa Math.min
+                            const scale = Math.max(photoCanvas.width / img.width, photoCanvas.height / img.height); 
+
+                            const scaledWidth = img.width * scale;
+                            const scaledHeight = img.height * scale;
+                            const x = (photoCanvas.width / 2) - (scaledWidth / 2);
+                            const y = (photoCanvas.height / 2) - (scaledHeight / 2);
+                            
+                            ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
+                            photoPreview.src = photoCanvas.toDataURL('image/jpeg', 0.9); 
                         }
                         img.src = e.target.result;
                     }
                     reader.readAsDataURL(file);
                 }
             });
-        
+
             // Handle Risk Level Change
             riskRadios.forEach(radio => {
                 radio.addEventListener('change', function() {
@@ -234,127 +257,111 @@
                     }
                 });
             });
-        
+
             // Handle PDF Export
             exportPdfBtn.addEventListener('click', function() {
                 loadingModal.classList.remove('hidden');
-        
-                // Clonar el contenido para manipularlo sin afectar la vista del usuario
-                // y asegurar que se renderice como queremos para el PDF
+
                 html2canvas(reportContent, {
-                    scale: 3, // Aumentar la escala para mayor resolución del PDF (2 es un buen mínimo, 3 o 4 mejor para texto legible)
+                    scale: 3, 
                     useCORS: true,
                     logging: false,
-                    // scrollY: -window.scrollY, // Esto ayuda a capturar la parte superior si la página está desplazada
-                    windowWidth: reportContent.scrollWidth, // Asegura que la captura tenga el ancho completo del contenido
-                    windowHeight: reportContent.scrollHeight, // Asegura que la captura tenga la altura completa del contenido
+                    windowWidth: reportContent.scrollWidth,
+                    windowHeight: reportContent.scrollHeight,
                     onclone: (clonedDoc) => {
-                        // Seleccionar el contenedor principal que tiene el 'max-w-2xl'
                         const mainContainer = clonedDoc.querySelector('.container.mx-auto.max-w-2xl');
-                        
-                        // Si existe el contenedor, forzamos su ancho para la captura
-                        // El ancho de A4 es 210mm. 1 mm = 3.779528 px (a 96 DPI).
-                        // 210mm * 3.779528 px/mm = 793.69 px. Redondeamos a 794px.
-                        // Ajustamos este ancho para que la captura se haga con una proporción de A4.
-                        // Es crucial para que html2canvas genere una imagen con proporciones de A4.
                         if (mainContainer) {
                             mainContainer.style.width = '794px'; 
-                            // Quitar los paddings que Tailwind aplica, para que no resten del 794px si queremos que el contenido ocupe todo el ancho del PDF
-                            mainContainer.style.paddingLeft = '0px'; 
-                            mainContainer.style.paddingRight = '0px';
+                            mainContainer.style.paddingLeft = '20px'; 
+                            mainContainer.style.paddingRight = '20px';
                         }
-        
-                        // Asegurar que el valor del textarea se refleje en el clon
+
                         const clonedObservations = clonedDoc.getElementById('observations');
-                        clonedObservations.textContent = observationsTextarea.value; // Usar textContent para textarea
-                        // Es importante que el textarea no tenga scroll interno y su contenido sea visible
+                        clonedObservations.textContent = observationsTextarea.value; 
                         clonedObservations.style.overflow = 'visible';
-                        clonedObservations.style.height = 'auto'; // Ajustar altura automáticamente
-                        clonedObservations.style.minHeight = observationsTextarea.scrollHeight + 'px'; // Asegurar que tenga al menos la altura actual
+                        clonedObservations.style.height = 'auto';
+                        clonedObservations.style.minHeight = observationsTextarea.scrollHeight + 'px';
                         
-                        // Asegurar que el display del riesgo sea visible en el clon
                         const clonedRiskDisplay = clonedDoc.getElementById('risk-display');
                         if (clonedRiskDisplay.textContent) {
                             clonedRiskDisplay.style.opacity = '1';
                         }
-        
-                        // Opcional: Remover cualquier sombra o borde que no quieras en el PDF
+
+                        // Asegurarse de que la imagen de la foto tiene el tamaño correcto en el DOM clonado para html2canvas
+                        const clonedPhotoPreview = clonedDoc.getElementById('photo-preview');
+                        const clonedPhotoContainer = clonedPhotoPreview.closest('div'); 
+                        if (clonedPhotoContainer) {
+                            // Aplicar las dimensiones calculadas en píxeles al contenedor de la imagen en el clon
+                            clonedPhotoContainer.style.width = PHOTO_WIDTH_PX + 'px';
+                            clonedPhotoContainer.style.height = PHOTO_HEIGHT_PX + 'px';
+                            clonedPhotoPreview.style.width = '100%';
+                            clonedPhotoPreview.style.height = '100%';
+                            clonedPhotoPreview.style.objectFit = 'cover'; 
+                        }
+                        
                         const clonedReportContent = clonedDoc.getElementById('report-content');
                         clonedReportContent.style.boxShadow = 'none';
                         clonedReportContent.style.border = 'none';
                     }
                 }).then(canvas => {
-                    const imgData = canvas.toDataURL('image/png', 1.0); // Calidad 1.0 para PNG
-        
+                    const imgData = canvas.toDataURL('image/png', 1.0); 
                     const { jsPDF } = window.jspdf;
                     const pdf = new jsPDF('p', 'mm', 'a4');
-        
-                    const pdfWidth = pdf.internal.pageSize.getWidth(); // Ancho del PDF en mm (210)
-                    const pdfHeight = pdf.internal.pageSize.getHeight(); // Alto del PDF en mm (297)
-        
-                    // Calcula el ancho y alto de la imagen en mm para que se ajuste al ancho del PDF
-                    // sin distorsión, manteniendo la relación de aspecto original de la captura del canvas.
-                    const imgWidth = pdfWidth; 
-                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        
-                    let heightLeft = imgHeight;
-                    let position = 0; // Posición vertical inicial para la imagen en la página del PDF
-        
-                    // Agregar la primera página
-                    // pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight); // Sin márgenes iniciales, luego se aplican
-                    
-                    // Un pequeño margen para el contenido del PDF si lo deseas
-                    const margin = 10; // mm
+
+                    const pdfWidth = pdf.internal.pageSize.getWidth(); 
+                    const pdfHeight = pdf.internal.pageSize.getHeight(); 
+
+                    const margin = 10; 
                     const contentWidth = pdfWidth - (margin * 2);
-        
-                    pdf.addImage(imgData, 'PNG', margin, margin, contentWidth, imgHeight);
-                    heightLeft -= (pdfHeight - margin * 2); // Restamos el alto de la página útil
-        
-                    // Si el contenido es más largo que una página, añadir páginas adicionales
+                    const contentHeight = pdfHeight - (margin * 2);
+
+                    const imgPdfWidth = contentWidth;
+                    const imgPdfHeight = (canvas.height * imgPdfWidth) / canvas.width;
+
+                    let heightLeft = imgPdfHeight;
+                    let position = 0; 
+
+                    pdf.addImage(imgData, 'PNG', margin, margin, imgPdfWidth, imgPdfHeight);
+                    heightLeft -= contentHeight; 
+
                     while (heightLeft > 0) {
-                        position = heightLeft - imgHeight; // Calcula cuánto de la imagen original ya se ha mostrado
+                        position = heightLeft - imgPdfHeight; 
                         pdf.addPage();
-                        // La imagen se "recorta" para mostrar solo la parte que no ha sido vista aún
-                        pdf.addImage(imgData, 'PNG', margin, position + margin, contentWidth, imgHeight);
-                        heightLeft -= (pdfHeight - margin * 2);
+                        pdf.addImage(imgData, 'PNG', margin, position + margin, imgPdfWidth, imgPdfHeight);
+                        heightLeft -= contentHeight;
                     }
-        
-        
+
                     const companyName = document.getElementById('company-name').value || 'SinNombre';
                     const date = new Date().toISOString().slice(0, 10);
                     pdf.save(`InformeDeRiesgo_${companyName}_${date}.pdf`);
-        
+
                     loadingModal.classList.add('hidden');
                     emailModal.classList.remove('hidden');
                 }).catch(error => {
                     console.error("Error al generar el PDF:", error);
                     loadingModal.classList.add('hidden');
-                    // Aquí puedes mostrar un mensaje de error al usuario
                     alert('Hubo un error al generar el PDF. Por favor, inténtelo de nuevo.');
                 });
             });
-        
+
             // Handle Modal Buttons
             emailNoBtn.addEventListener('click', () => {
                 emailModal.classList.add('hidden');
             });
-        
+
             emailYesBtn.addEventListener('click', () => {
                 const email = document.getElementById('email').value || '';
                 const company = document.getElementById('company-name').value || 'Reporte';
                 const subject = `Informe de Riesgo - ${company}`;
                 const body = `Hola,\n\nAdjunto el informe de riesgo generado para ${company}.\n\nSaludos.`;
                 
-                // Cierra el modal antes de abrir mailto, para una mejor UX
                 emailModal.classList.add('hidden');
-                
-                // Pequeño retardo para asegurar que el modal se oculte bien antes de la redirección
                 setTimeout(() => {
                     window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
                 }, 100); 
             });
         });
-        
+
         // Register the Service Worker for PWA functionality
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
