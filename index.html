@@ -5,19 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Informe de Riesgo</title>
     
-    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- jsPDF and html2canvas for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script> <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- PWA Manifest and Theme -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1d4ed8">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
@@ -33,7 +27,7 @@
         }
         /* Custom styles for the report area to ensure clean PDF export */
         #report-content {
-            box-shadow: none;
+            box-shadow: none; /* Asegura que la sombra no se capture en el PDF */
         }
         /* Styling for the risk level display */
         #risk-display {
@@ -44,16 +38,13 @@
 <body class="bg-gray-100">
 
     <div class="container mx-auto max-w-2xl p-4 sm:p-6 lg:p-8">
-        <!-- Header -->
         <header class="text-center mb-6">
             <h1 class="text-3xl font-bold text-gray-800">Informe de Riesgo</h1>
             <p class="text-sm text-gray-500">Creada por JAE SISTEMAS</p>
         </header>
 
-        <!-- Main Report Area -->
         <main id="report-content" class="bg-white p-6 rounded-lg shadow-lg">
             
-            <!-- Company Info Section -->
             <div class="grid grid-cols-3 gap-4 mb-6 items-center">
                 <div class="col-span-1">
                     <label for="logo-upload" class="cursor-pointer">
@@ -69,28 +60,23 @@
                 </div>
             </div>
 
-            <!-- Date and Time -->
             <div class="mb-6">
                 <p class="text-sm text-gray-600"><strong>Fecha y Hora:</strong> <span id="datetime"></span></p>
             </div>
             <hr class="mb-6">
 
-            <!-- Photo and Risk Assessment Section -->
             <div class="grid md:grid-cols-2 gap-6">
-                <!-- Photo Upload -->
                 <div>
                     <h2 class="font-bold text-lg mb-2">Fotografía de Evidencia</h2>
                     <label for="photo-upload" class="cursor-pointer block w-full h-auto aspect-square bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-300 transition-colors">
                         <img id="photo-preview" src="https://placehold.co/600x600/e2e8f0/cbd5e0?text=Cargar+Foto+(600x600)" alt="Vista previa de la foto" class="w-full h-full object-cover rounded-lg">
                     </label>
                     <input id="photo-upload" type="file" accept="image/*" capture="environment">
-                    <canvas id="photo-canvas" width="600" height="600" class="hidden"></canvas>
-                </div>
+                    <canvas id="photo-canvas" class="hidden"></canvas> </div>
 
-                <!-- Risk Checklist -->
                 <div>
                     <h2 class="font-bold text-lg mb-2">Nivel de Riesgo</h2>
-                    <div class="space-y-3">
+                    <div class="space-y-3" id="risk-checklist-options"> 
                         <label class="flex items-center p-3 bg-gray-50 rounded-md border has-[:checked]:bg-green-100 has-[:checked]:border-green-400">
                             <input type="radio" name="risk" value="SIN RIESGO" class="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500">
                             <span class="ml-3 text-gray-700">Sin Riesgo</span>
@@ -111,19 +97,16 @@
                 </div>
             </div>
 
-            <!-- Risk Level Display -->
             <div id="risk-display-container" class="mt-4 text-center h-10 flex items-center justify-center">
-                 <p id="risk-display" class="font-bold uppercase px-4 py-2 rounded-md" style="opacity: 0;"></p>
+                   <p id="risk-display" class="font-bold uppercase px-4 py-2 rounded-md" style="opacity: 0;"></p>
             </div>
 
-            <!-- Observations Section -->
             <div class="mt-6">
                 <h2 class="font-bold text-lg mb-2">Observaciones</h2>
                 <textarea id="observations" rows="5" class="w-full p-2 border rounded-md" placeholder="Escriba aquí sus observaciones..."></textarea>
             </div>
         </main>
         
-        <!-- Action Button -->
         <footer class="mt-6 text-center">
             <button id="export-pdf" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-all shadow-md w-full sm:w-auto">
                 Generar y Exportar PDF
@@ -131,7 +114,6 @@
         </footer>
     </div>
 
-    <!-- Modal for Email Prompt -->
     <div id="email-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full text-center">
             <h3 class="text-lg font-medium text-gray-900 mb-2">PDF Generado</h3>
@@ -143,7 +125,6 @@
         </div>
     </div>
     
-    <!-- Modal for Loading State -->
     <div id="loading-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-lg shadow-xl p-8 text-center">
             <p class="text-lg font-medium text-gray-900">Generando PDF...</p>
@@ -151,7 +132,7 @@
     </div>
     
     <script>
-           document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function () {
             // --- ELEMENTS ---
             const logoUpload = document.getElementById('logo-upload');
             const logoPreview = document.getElementById('logo-preview');
@@ -287,6 +268,12 @@
                             clonedRiskDisplay.style.opacity = '1';
                         }
 
+                        // Ocultar la sección de los radio buttons del "Nivel de Riesgo" en el clon para el PDF
+                        const clonedRiskChecklistOptions = clonedDoc.getElementById('risk-checklist-options');
+                        if (clonedRiskChecklistOptions) {
+                            clonedRiskChecklistOptions.style.display = 'none';
+                        }
+                        
                         // Asegurarse de que la imagen de la foto tiene el tamaño correcto en el DOM clonado para html2canvas
                         const clonedPhotoPreview = clonedDoc.getElementById('photo-preview');
                         const clonedPhotoContainer = clonedPhotoPreview.closest('div'); 
